@@ -25,7 +25,8 @@ class ClassificationLoss(nn.Module):
         Returns:
             tensor, scalar loss
         """
-        raise NotImplementedError("ClassificationLoss.forward() is not implemented")
+        #raise NotImplementedError("ClassificationLoss.forward() is not implemented")
+        return nn.functional.cross_entropy(logits, target)
 
 
 class LinearClassifier(nn.Module):
@@ -43,7 +44,8 @@ class LinearClassifier(nn.Module):
         """
         super().__init__()
 
-        raise NotImplementedError("LinearClassifier.__init__() is not implemented")
+        #raise NotImplementedError("LinearClassifier.__init__() is not implemented")
+        return self.linear_layer = nn.Linear(3*h*w,num_class)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -53,7 +55,8 @@ class LinearClassifier(nn.Module):
         Returns:
             tensor (b, num_classes) logits
         """
-        raise NotImplementedError("LinearClassifier.forward() is not implemented")
+        #raise NotImplementedError("LinearClassifier.forward() is not implemented")
+        return self.linear_layer(x.view(x.shape[0],-1))
 
 
 class MLPClassifier(nn.Module):
@@ -73,7 +76,11 @@ class MLPClassifier(nn.Module):
         """
         super().__init__()
 
-        raise NotImplementedError("MLPClassifier.__init__() is not implemented")
+        #raise NotImplementedError("MLPClassifier.__init__() is not implemented")
+        self.mlp = nn.Sequential(nn.Linear(3*h*w,50),
+        nn.ReLU())
+
+        self.output = nn.Linear(50,num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -83,7 +90,10 @@ class MLPClassifier(nn.Module):
         Returns:
             tensor (b, num_classes) logits
         """
-        raise NotImplementedError("MLPClassifier.forward() is not implemented")
+        #raise NotImplementedError("MLPClassifier.forward() is not implemented")
+        x = self.mlp(x.view(x.shape[0],-1))
+        x = self.output(x)
+        return x
 
 
 class MLPClassifierDeep(nn.Module):
