@@ -120,7 +120,7 @@ class MLPClassifierDeep(nn.Module):
         super().__init__()
 
         #raise NotImplementedError("MLPClassifierDeep.__init__() is not implemented")
-        input_layer = nn.Linear(nn.Linear(3*h*w,hidden_dim))
+        input_layer = nn.Linear(3*h*w,hidden_dim)
         layers = [input_layer, nn.ReLU()]
 
         for _ in range(num_layers-2):
