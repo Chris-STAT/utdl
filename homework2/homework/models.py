@@ -56,7 +56,7 @@ class LinearClassifier(nn.Module):
             tensor (b, num_classes) logits
         """
         #raise NotImplementedError("LinearClassifier.forward() is not implemented")
-        self.linear_layer(x.view(x.shape[0],-1))
+        return self.linear_layer(x.view(x.shape[0],-1))
 
 
 class MLPClassifier(nn.Module):
