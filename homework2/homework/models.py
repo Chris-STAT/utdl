@@ -45,7 +45,7 @@ class LinearClassifier(nn.Module):
         super().__init__()
 
         #raise NotImplementedError("LinearClassifier.__init__() is not implemented")
-        self.linear_layer = nn.Linear(3*h*w,num_class)
+        self.linear_layer = nn.Linear(3*h*w,num_classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
