@@ -191,7 +191,7 @@ class MLPClassifierDeepResidual(nn.Module):
         x = self.input_layer(x)
         x = self.relu(x)
 
-        for layers in self.hidden_layers:
+        for layer in self.hidden_layers:
             res = x
             x = layer(x)
             x = self.relu(x)
