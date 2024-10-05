@@ -167,7 +167,7 @@ class MLPClassifierDeepResidual(nn.Module):
         """
         super().__init__()
         #raise NotImplementedError("MLPClassifierDeepResidual.__init__() is not implemented")
-        self.hidden_layer =[]
+        self.hidden_layers =[]
         self.input_layer = nn.Linear(3*h*w,hidden_dim)
         self.hidden_layer = nn.Linear(hidden_dim, hidden_dim)
         self.relu = nn.ReLU()
