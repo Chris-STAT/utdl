@@ -102,8 +102,8 @@ class MLPClassifierDeep(nn.Module):
         h: int = 64,
         w: int = 64,
         num_classes: int = 6,
-        num_layers: int =5,
-        hidden_dim: int = 64,
+        num_layers: int =4,
+        hidden_dim: int = 256,
     ):
         """
         An MLP with multiple hidden layers
@@ -153,7 +153,7 @@ class MLPClassifierDeepResidual(nn.Module):
         w: int = 64,
         num_classes: int = 6,
         hidden_dim: int = 256,
-        num_layers: int = 5,
+        num_layers: int = 4,
     ):
         """
         Args:
