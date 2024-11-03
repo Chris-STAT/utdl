@@ -19,7 +19,7 @@ def train(
     batch_size: int = 128,
     seed: int = 2024,
     loss_wgt: float = 0.5,
-    class_wgt: list = [0.1,0.45,0.45],
+    class_wgt: list = [0.33,0.33,0.33],
     **kwargs,
 ):
     if torch.cuda.is_available():
@@ -46,9 +46,9 @@ def train(
 
     # create loss function and optimizer
 
-    class_weights = torch.tensor(class_wgt, dtype=torch.float)
+    class_weights = torch.tensor(class_wgt, dtype=torch.float).to(device)
 
-    class_loss_func = ClassificationLoss_detection()
+    class_loss_func = ClassificationLoss_detection(weight=class_weights)
     reg_loss_func = RegressionLoss()
     # optimizer = ...
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -75,7 +75,7 @@ def train(
             optimizer.zero_grad()
             logits, raw_depth = model(img)
             
-            class_loss = class_loss_func(logits, track,weight=class_weights)
+            class_loss = class_loss_func(logits, track)
             reg_loss = reg_loss_func(raw_depth, depth)        
             
             loss =  loss_wgt*class_loss + (1-loss_wgt)*reg_loss
@@ -153,5 +153,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--loss_wgt", type=float, default=0.5)
-    parser.add_argument("--class_wgt", type=list, default=[0.33,0.33,0.33])
-    train(**vars(parser.parse_args()))
+    parser.add_argument("--class_wgt", type=str, default="0.33,0.33,0.33"])
+    args = parser.parse_args()
+    args.class_wgt = [float(w) for w in args.class_wgt.split(",")]
+    train(**vars(args))
