@@ -102,7 +102,7 @@ def train(
                 #raise NotImplementedError("Validation accuracy not implemented")
                 logits, raw_depth = model(img)
                 _, predicted =  torch.max(logits, 1)
-                accuracy = (predicted == label).float().mean()
+                accuracy = (predicted == track).float().mean()
                 metrics["val_acc"].append(accuracy.item())
 
                 mse = reg_loss_func(raw_depth, depth).item()
