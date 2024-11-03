@@ -161,14 +161,14 @@ class Detector(torch.nn.Module):
         self.register_buffer("input_std", torch.as_tensor(INPUT_STD))
 
         # TODO: implement
-        self.down1 = nn.Conv2d(in_channels, 16, kernal_size = 3, stride=2,  padding=1)
+        self.down1 = nn.Conv2d(in_channels, 16, kernel_size = 3, stride=2,  padding=1)
         self.down2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
         self.relu = nn.ReLU(inplace=True)
-        self.up1 = nn.ConvTranspose2d(32, 16, kernal_size=3, stride=2, padding=1, output_padding=1)
-        self.up2 = nn.ConvTranspose2d(16, 16, kernal_size=3, stride=2, padding=1, output_padding=1)
+        self.up1 = nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.up2 = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
 
-        self.logits_layer = nn.Conv2d(16, num_classes, kernal_size=1)
-        self.depth_layer = nn.Conv2d(16, 1, kernal_size=1)
+        self.logits_layer = nn.Conv2d(16, num_classes, kernel_size=1)
+        self.depth_layer = nn.Conv2d(16, 1, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
