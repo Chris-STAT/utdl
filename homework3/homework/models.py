@@ -56,7 +56,7 @@ class ClassificationLoss_detection(nn.Module):
             tensor, scalar loss
         """
         #raise NotImplementedError("ClassificationLoss.forward() is not implemented")
-        return nn.functional.cross_entropy(logits, target, weight)
+        return nn.functional.cross_entropy(logits, target, weight=weight)
     
 
 
