@@ -48,7 +48,7 @@ def train(
 
     class_weights = torch.tensor(class_wgt, dtype=torch.float)
 
-    class_loss_func = ClassificationLoss()
+    class_loss_func = ClassificationLoss_detection()
     reg_loss_func = RegressionLoss()
     # optimizer = ...
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)

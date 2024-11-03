@@ -22,8 +22,27 @@ class RegressionLoss(nn.Module):
         return nn.functional.mse_loss(predictions, target)
 
 
-
 class ClassificationLoss(nn.Module):
+    def forward(self, logits: torch.Tensor, target: torch.LongTensor) -> torch.Tensor:
+        """
+        Multi-class classification loss
+        Hint: simple one-liner
+
+        Args:
+            logits: tensor (b, c) logits, where c is the number of classes
+            target: tensor (b,) labels
+
+        Returns:
+            tensor, scalar loss
+        """
+        #raise NotImplementedError("ClassificationLoss.forward() is not implemented")
+        return nn.functional.cross_entropy(logits, target)
+
+
+
+
+
+class ClassificationLoss_detection(nn.Module):
     def forward(self, logits: torch.Tensor, target: torch.LongTensor, weight: torch.Tensor) -> torch.Tensor:
         """
         Multi-class classification loss
