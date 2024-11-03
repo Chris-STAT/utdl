@@ -152,4 +152,6 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=5e-4)
     parser.add_argument("--seed", type=int, default=2024)
     parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--loss_wgt", type=float, default=0.5)
+    parser.add_argument("--class_wgt", type=list, default=[0.33,0.33,0.33])
     train(**vars(parser.parse_args()))
