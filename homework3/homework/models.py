@@ -205,7 +205,7 @@ class Detector(torch.nn.Module):
         logits = self.logits_layer(z)
         raw_depth = self.depth_layer(z)
 
-        return logits, raw_depth.suqeeze(1)
+        return logits, raw_depth.squeeze(1)
 
     def predict(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
