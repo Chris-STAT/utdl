@@ -159,8 +159,7 @@ class Classifier(nn.Module):
             pred (torch.LongTensor): class labels {0, 1, ..., 5} with shape (b, h, w)
         """
         return self.forward (x).argmax(dim=1)
-
-
+'''
 class Detector(torch.nn.Module):
     def __init__(
         self,
@@ -222,7 +221,7 @@ class Detector(torch.nn.Module):
         z = self.relu(z)
 
         logits = self.logits_layer(z)
-        raw_depth = self.depth_layer(z)
+        raw_depth = self.relu(self.depth_layer(z))
 
         return logits, raw_depth.squeeze(1)
 
@@ -246,6 +245,105 @@ class Detector(torch.nn.Module):
         depth = raw_depth
 
         return pred, depth.squeeze(1)
+
+'''
+
+
+
+class Detector(nn.Module):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        num_classes: int = 3,
+    ):
+        """
+        A single model that performs segmentation and depth regression
+
+        Args:
+            in_channels: int, number of input channels
+            num_classes: int
+        """
+        super().__init__()
+
+        # Registering mean and std as buffers for normalization
+        self.register_buffer("input_mean", torch.tensor([0.2788, 0.2657, 0.2629]))
+        self.register_buffer("input_std", torch.tensor([0.2064, 0.1944, 0.2252]))
+
+        # Down-sampling layers with ResBlock
+        self.down1 = nn.Conv2d(in_channels, 16, kernel_size=3, stride=2, padding=1)
+        self.resblock1 = ResBlock(16, 16)
+
+        self.down2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.resblock2 = ResBlock(32, 32)
+
+        # Up-sampling layers with ResBlock
+        self.up1 = nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.resblock3 = ResBlock(16, 16)
+
+        self.up2 = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.resblock4 = ResBlock(16, 16)
+
+        # Output layers for segmentation and depth
+        self.logits_layer = nn.Conv2d(16, num_classes, kernel_size=1)
+        self.depth_layer = nn.Conv2d(16, 1, kernel_size=1)
+
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Used in training, takes an image and returns raw logits and raw depth.
+
+        Args:
+            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+
+        Returns:
+            tuple of (torch.FloatTensor, torch.FloatTensor):
+                - logits (b, num_classes, h, w)
+                - depth (b, 1, h, w)
+        """
+        # Normalize the input
+        if isinstance(x, tuple):
+            x = x[0]
+        z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
+
+        # Down-sampling with ResBlocks
+        z = self.relu(self.down1(z))
+        z = self.resblock1(z)
+        
+        z = self.relu(self.down2(z))
+        z = self.resblock2(z)
+
+        # Up-sampling with ResBlocks
+        z = self.relu(self.up1(z))
+        z = self.resblock3(z)
+        
+        z = self.relu(self.up2(z))
+        z = self.resblock4(z)
+
+        # Outputs
+        logits = self.logits_layer(z)
+        raw_depth = self.relu(self.depth_layer(z))
+
+        return logits, raw_depth.squeeze(1)
+
+    def predict(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Used for inference, takes an image and returns class labels and normalized depth.
+
+        Args:
+            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+
+        Returns:
+            tuple of (torch.LongTensor, torch.FloatTensor):
+                - pred: class labels {0, 1, 2} with shape (b, h, w)
+                - depth: normalized depth [0, 1] with shape (b, h, w)
+        """
+        logits, raw_depth = self.forward(x)
+        pred = logits.argmax(dim=1)
+
+        return pred, depth.squeeze(1)
+
+
 
 
 MODEL_FACTORY = {
