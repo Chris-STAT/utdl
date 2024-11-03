@@ -7,6 +7,21 @@ HOMEWORK_DIR = Path(__file__).resolve().parent
 INPUT_MEAN = [0.2788, 0.2657, 0.2629]
 INPUT_STD = [0.2064, 0.1944, 0.2252]
 
+class RegressionLoss(nn.Module):
+    def forward(self, predictions: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """
+        Regression loss using Mean Squared Error (MSE)
+
+        Args:
+            predictions: tensor (b,) or (b, 1) predictions
+            target: tensor (b,) or (b, 1) target values
+
+        Returns:
+            tensor, scalar loss
+        """
+        return nn.functional.mse_loss(predictions, target)
+
+
 
 class ClassificationLoss(nn.Module):
     def forward(self, logits: torch.Tensor, target: torch.LongTensor) -> torch.Tensor:
@@ -23,6 +38,10 @@ class ClassificationLoss(nn.Module):
         """
         #raise NotImplementedError("ClassificationLoss.forward() is not implemented")
         return nn.functional.cross_entropy(logits, target)
+    
+
+
+
 
 
 class ResBlock(torch.nn.Module):
@@ -120,7 +139,7 @@ class Classifier(nn.Module):
         Returns:
             pred (torch.LongTensor): class labels {0, 1, ..., 5} with shape (b, h, w)
         """
-        return self.forward(x).argmax(dim=1)
+        return self.forward (x).argmax(dim=1)
 
 
 class Detector(torch.nn.Module):
