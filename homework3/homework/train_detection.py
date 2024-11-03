@@ -18,6 +18,8 @@ def train(
     lr: float = 1e-4,
     batch_size: int = 128,
     seed: int = 2024,
+    loss_wgt: float = 0.5,
+    class_wgt: list = [0.1,0.45,0.45]
     **kwargs,
 ):
     if torch.cuda.is_available():
@@ -43,7 +45,8 @@ def train(
     val_data = load_data("road_data/val", shuffle=False, num_workers=2)
 
     # create loss function and optimizer
-    class_loss_func = ClassificationLoss()
+    class_weights = torch.tensor(class_wgt, dtype=torch.float)
+    class_loss_func = ClassificationLoss(weight=class_weights)
     reg_loss_func = RegressionLoss()
     # optimizer = ...
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -73,7 +76,7 @@ def train(
             class_loss = class_loss_func(logits, track)
             reg_loss = reg_loss_func(raw_depth, depth)        
             
-            loss =  0.99*class_loss + 0.01*reg_loss
+            loss =  loss_wgt*class_loss + (1-loss_wgt)*reg_loss
 
             loss.backward()
             optimizer.step()
