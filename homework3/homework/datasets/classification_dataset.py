@@ -38,6 +38,7 @@ class SuperTuxDataset(Dataset):
             # TODO: construct your custom augmentation
             xform = transforms.Compose(
                 [
+                    transforms.RandomHorizontalFlip(p=0.5),
                     transforms.ToTensor(),
                 ]
             )

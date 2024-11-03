@@ -8,6 +8,45 @@ INPUT_MEAN = [0.2788, 0.2657, 0.2629]
 INPUT_STD = [0.2064, 0.1944, 0.2252]
 
 
+class ClassificationLoss(nn.Module):
+    def forward(self, logits: torch.Tensor, target: torch.LongTensor) -> torch.Tensor:
+        """
+        Multi-class classification loss
+        Hint: simple one-liner
+
+        Args:
+            logits: tensor (b, c) logits, where c is the number of classes
+            target: tensor (b,) labels
+
+        Returns:
+            tensor, scalar loss
+        """
+        #raise NotImplementedError("ClassificationLoss.forward() is not implemented")
+        return nn.functional.cross_entropy(logits, target)
+
+
+class ResBlock(torch.nn.Module):
+    def __init__(self, in_c, out_c):
+        super().__init__()
+        self.cnn_layer_1 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
+        self.bn_layer_1 = torch.nn.BatchNorm2d(out_c)
+        self.cnn_layer_2 = torch.nn.Conv2d(in_c, out_c, 3, stride = 1, padding = 1)
+        self.bn_layer_2 = torch.nn.BatchNorm2d(out_c)
+        self.act_layer= torch.nn.ReLU()
+
+    def forward(self, x):
+        x_dup = x
+        x_new = self.cnn_layer_1(x)
+        x_new = self.bn_layer_1(x_new)
+        x_new = self.act_layer(x_new)
+        x_new = self.cnn_layer_2(x_new)
+        x_new = x_new + x_dup
+        x_new = self.bn_layer_2(x_new)
+        x_new = self.act_layer(x_new)
+        return x_new
+
+
+
 class Classifier(nn.Module):
     def __init__(
         self,
@@ -27,7 +66,21 @@ class Classifier(nn.Module):
         self.register_buffer("input_std", torch.as_tensor(INPUT_STD))
 
         # TODO: implement
-        pass
+        size = 128
+        in_c = size
+        out_c = size
+
+        self.layer_1 = torch.nn.Conv2d(in_channels, out_c,3,stride=1,padding=1)
+        self.layer_2 = ResBlock(in_c, out_c)
+        self.layer_3 = ResBlock(in_c, out_c)
+        self.layer_4 = ResBlock(in_c, out_c)
+        self.layer_5 = ResBlock(in_c, out_c)
+        self.layer_6 = ResBlock(in_c, out_c)
+        self.dropout = torch.nn.Dropout(0.15)
+        self.output = torch.nn.Linear(in_c,num_classes)
+
+
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -41,9 +94,19 @@ class Classifier(nn.Module):
         z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
 
         # TODO: replace with actual forward pass
-        logits = torch.randn(x.size(0), 6)
-
+        #logits = torch.randn(x.size(0), 6)
+        z = self.layer_1(z)
+        z = self.layer_2(z)
+        z = self.layer_3(z)
+        z = self.layer_4(z)
+        z = self.layer_5(z)
+        z = self.layer_6(z)
+        z = self.dropout(z)
+        z =z.mean((2,3))
+        logits = self.output(z)
         return logits
+
+
 
     def predict(self, x: torch.Tensor) -> torch.Tensor:
         """
