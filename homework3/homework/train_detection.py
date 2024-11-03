@@ -48,7 +48,7 @@ def train(
 
     class_weights = torch.tensor(class_wgt, dtype=torch.float).to(device)
 
-    class_loss_func = ClassificationLoss_detection(weight=class_weights)
+    class_loss_func = ClassificationLoss_detection()
     reg_loss_func = RegressionLoss()
     # optimizer = ...
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -75,8 +75,8 @@ def train(
             optimizer.zero_grad()
             logits, raw_depth = model(img)
             
-            class_loss = class_loss_func(logits, track)
-            reg_loss = reg_loss_func(raw_depth, depth)        
+            class_loss = class_loss_func(logits, track, weight=class_weights)
+            reg_loss = reg_loss_func(raw_depth, depth))        
             
             loss =  loss_wgt*class_loss + (1-loss_wgt)*reg_loss
 
