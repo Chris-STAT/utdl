@@ -73,7 +73,7 @@ def train(
             class_loss = class_loss_func(logits, track)
             reg_loss = reg_loss_func(raw_depth, depth)        
             
-            loss =  0.5*class_loss + 0.5*reg_loss
+            loss =  0.99*class_loss + 0.01*reg_loss
 
             loss.backward()
             optimizer.step()

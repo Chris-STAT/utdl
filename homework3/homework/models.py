@@ -93,8 +93,8 @@ class Classifier(nn.Module):
         self.layer_2 = ResBlock(in_c, out_c)
         self.layer_3 = ResBlock(in_c, out_c)
         self.layer_4 = ResBlock(in_c, out_c)
-        self.layer_5 = ResBlock(in_c, out_c)
-        self.layer_6 = ResBlock(in_c, out_c)
+        #self.layer_5 = ResBlock(in_c, out_c)
+        #self.layer_6 = ResBlock(in_c, out_c)
         self.dropout = torch.nn.Dropout(0.15)
         self.output = torch.nn.Linear(in_c,num_classes)
 
@@ -118,8 +118,8 @@ class Classifier(nn.Module):
         z = self.layer_2(z)
         z = self.layer_3(z)
         z = self.layer_4(z)
-        z = self.layer_5(z)
-        z = self.layer_6(z)
+        #z = self.layer_5(z)
+        #z = self.layer_6(z)
         z = self.dropout(z)
         z =z.mean((2,3))
         logits = self.output(z)
@@ -226,7 +226,7 @@ class Detector(torch.nn.Module):
         # Optional additional post-processing for depth only if needed
         depth = raw_depth
 
-        return pred, depth
+        return pred, depth.squeeze(1)
 
 
 MODEL_FACTORY = {
