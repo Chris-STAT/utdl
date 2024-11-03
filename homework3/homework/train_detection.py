@@ -76,7 +76,7 @@ def train(
             logits, raw_depth = model(img)
             
             class_loss = class_loss_func(logits, track, weight=class_weights)
-            reg_loss = reg_loss_func(raw_depth, depth))        
+            reg_loss = reg_loss_func(raw_depth, depth)      
             
             loss =  loss_wgt*class_loss + (1-loss_wgt)*reg_loss
 
