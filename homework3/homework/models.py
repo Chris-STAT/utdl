@@ -341,7 +341,9 @@ class Detector(nn.Module):
         logits, raw_depth = self.forward(x)
         pred = logits.argmax(dim=1)
 
-        return pred, depth.squeeze(1)
+        depth = raw_depth
+
+        return pred, depth
 
 
 
