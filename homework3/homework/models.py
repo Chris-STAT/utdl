@@ -84,7 +84,7 @@ class ResBlock(torch.nn.Module):
         return x_new
 
 
-
+'''
 class Classifier(nn.Module):
     def __init__(
         self,
@@ -112,8 +112,8 @@ class Classifier(nn.Module):
         self.layer_2 = ResBlock(in_c, out_c)
         self.layer_3 = ResBlock(in_c, out_c)
         self.layer_4 = ResBlock(in_c, out_c)
-        #self.layer_5 = ResBlock(in_c, out_c)
-        #self.layer_6 = ResBlock(in_c, out_c)
+        self.layer_5 = ResBlock(in_c, out_c)
+        self.layer_6 = ResBlock(in_c, out_c)
         self.dropout = torch.nn.Dropout(0.15)
         self.output = torch.nn.Linear(in_c,num_classes)
 
@@ -137,8 +137,8 @@ class Classifier(nn.Module):
         z = self.layer_2(z)
         z = self.layer_3(z)
         z = self.layer_4(z)
-        #z = self.layer_5(z)
-        #z = self.layer_6(z)
+        z = self.layer_5(z)
+        z = self.layer_6(z)
         z = self.dropout(z)
         z =z.mean((2,3))
         logits = self.output(z)
@@ -159,6 +159,83 @@ class Classifier(nn.Module):
             pred (torch.LongTensor): class labels {0, 1, ..., 5} with shape (b, h, w)
         """
         return self.forward (x).argmax(dim=1)
+'''
+class Classifier(nn.Module):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        num_classes: int = 6,
+    ):
+        """
+        A convolutional network for image classification.
+
+        Args:
+            in_channels: int, number of input channels
+            num_classes: int
+        """
+        super().__init__()
+
+        self.register_buffer("input_mean", torch.as_tensor([0.2788, 0.2657, 0.2629]))
+        self.register_buffer("input_std", torch.as_tensor([0.2064, 0.1944, 0.2252]))
+
+        size = 128
+        in_c = size
+        out_c = size
+
+        # Define the layers with batch normalization
+        self.layer_1 = nn.Sequential(
+            nn.Conv2d(in_channels, out_c, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(out_c),
+            nn.ReLU(inplace=True)
+        )
+        self.layer_2 = ResBlock(in_c, out_c)
+        self.layer_3 = ResBlock(in_c, out_c)
+        self.layer_4 = ResBlock(in_c, out_c)
+        self.layer_5 = ResBlock(in_c, out_c)
+        self.layer_6 = ResBlock(in_c, out_c)
+        self.dropout = nn.Dropout(0.15)
+        self.output = nn.Linear(in_c, num_classes)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: tensor (b, 3, h, w) image
+
+        Returns:
+            tensor (b, num_classes) logits
+        """
+        # Normalize the input
+        z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
+
+        # Pass through the layers with batch normalization
+        z = self.layer_1(z)
+        z = self.layer_2(z)
+        z = self.layer_3(z)
+        z = self.layer_4(z)
+        z = self.layer_5(z)
+        z = self.layer_6(z)
+        z = self.dropout(z)
+        
+        # Global average pooling and final fully connected layer
+        z = z.mean((2, 3))  # Global average pooling over spatial dimensions
+        logits = self.output(z)
+        return logits
+
+    def predict(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Used for inference, returns class labels
+        This is what the AccuracyMetric uses as input (this is what the grader will use!).
+
+        Args:
+            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+
+        Returns:
+            pred (torch.LongTensor): class labels {0, 1, ..., 5} with shape (b, h, w)
+        """
+        return self.forward(x).argmax(dim=1)
+
+
+
 '''
 class Detector(torch.nn.Module):
     def __init__(
@@ -249,7 +326,7 @@ class Detector(torch.nn.Module):
 '''
 
 
-
+'''
 class Detector(nn.Module):
     def __init__(
         self,
@@ -344,7 +421,107 @@ class Detector(nn.Module):
         depth = raw_depth
 
         return pred, depth
+'''
 
+
+class Detector(nn.Module):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        num_classes: int = 3,
+    ):
+        """
+        A single model that performs segmentation and depth regression
+
+        Args:
+            in_channels: int, number of input channels
+            num_classes: int
+        """
+        super().__init__()
+
+        # Registering mean and std as buffers for normalization
+        self.register_buffer("input_mean", torch.tensor([0.2788, 0.2657, 0.2629]))
+        self.register_buffer("input_std", torch.tensor([0.2064, 0.1944, 0.2252]))
+
+        # Down-sampling layers with batch normalization and ResBlock
+        self.down1 = nn.Conv2d(in_channels, 16, kernel_size=3, stride=2, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.resblock1 = ResBlock(16, 16)
+
+        self.down2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.resblock2 = ResBlock(32, 32)
+
+        # Up-sampling layers with batch normalization and ResBlock
+        self.up1 = nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.bn3 = nn.BatchNorm2d(16)
+        self.resblock3 = ResBlock(16, 16)
+
+        self.up2 = nn.ConvTranspose2d(16, 16, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.bn4 = nn.BatchNorm2d(16)
+        self.resblock4 = ResBlock(16, 16)
+
+        # Output layers for segmentation and depth
+        self.logits_layer = nn.Conv2d(16, num_classes, kernel_size=1)
+        self.depth_layer = nn.Conv2d(16, 1, kernel_size=1)
+
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Used in training, takes an image and returns raw logits and raw depth.
+
+        Args:
+            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+
+        Returns:
+            tuple of (torch.FloatTensor, torch.FloatTensor):
+                - logits (b, num_classes, h, w)
+                - depth (b, 1, h, w)
+        """
+        # Normalize the input
+        if isinstance(x, tuple):
+            x = x[0]
+        z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
+
+        # Down-sampling with ResBlocks and BatchNorm
+        z = self.relu(self.bn1(self.down1(z)))
+        z = self.resblock1(z)
+        
+        z = self.relu(self.bn2(self.down2(z)))
+        z = self.resblock2(z)
+
+        # Up-sampling with ResBlocks and BatchNorm
+        z = self.relu(self.bn3(self.up1(z)))
+        z = self.resblock3(z)
+        
+        z = self.relu(self.bn4(self.up2(z)))
+        z = self.resblock4(z)
+
+        # Outputs
+        logits = self.logits_layer(z)
+        raw_depth = self.depth_layer(z)
+
+        return logits, raw_depth.squeeze(1)
+
+    def predict(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Used for inference, takes an image and returns class labels and normalized depth.
+
+        Args:
+            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+
+        Returns:
+            tuple of (torch.LongTensor, torch.FloatTensor):
+                - pred: class labels {0, 1, 2} with shape (b, h, w)
+                - depth: normalized depth [0, 1] with shape (b, h, w)
+        """
+        logits, raw_depth = self.forward(x)
+        pred = logits.argmax(dim=1)
+
+        depth = raw_depth.clamp(0, 1)  # Optional normalization of depth
+
+        return pred, depth
 
 
 
