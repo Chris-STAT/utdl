@@ -4,6 +4,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
+import torch.utils.tensorboard as tb
+
 import torch.optim as optim
 
 from .models import ClassificationLoss, ResBlock, Classifier, load_model, save_model
