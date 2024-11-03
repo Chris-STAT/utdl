@@ -8,7 +8,7 @@ import torch.utils.tensorboard as tb
 
 import torch.optim as optim
 
-from .models import ClassificationLoss,RegressionLoss, Detector, load_model, save_model
+from .models import ClassificationLoss, RegressionLoss, Detector, load_model, save_model
 from .datasets.road_dataset import load_data
 
 def train(
