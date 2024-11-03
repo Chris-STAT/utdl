@@ -45,8 +45,10 @@ def train(
     val_data = load_data("road_data/val", shuffle=False, num_workers=2)
 
     # create loss function and optimizer
+
     class_weights = torch.tensor(class_wgt, dtype=torch.float)
-    class_loss_func = ClassificationLoss(weight=class_weights)
+
+    class_loss_func = ClassificationLoss()
     reg_loss_func = RegressionLoss()
     # optimizer = ...
     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -73,7 +75,7 @@ def train(
             optimizer.zero_grad()
             logits, raw_depth = model(img)
             
-            class_loss = class_loss_func(logits, track)
+            class_loss = class_loss_func(logits, track,weight=class_weights)
             reg_loss = reg_loss_func(raw_depth, depth)        
             
             loss =  loss_wgt*class_loss + (1-loss_wgt)*reg_loss
