@@ -62,7 +62,7 @@ def train(
 
 
         for img, depth, track in train_data:
-            img, depth, track = img.to(device), depth.to(device), track.to(device)
+            #img, depth, track = img.to(device), depth.to(device), track.to(device)
 
             # TODO: implement training step
             # raise NotImplementedError("Training step not implemented")
@@ -93,7 +93,7 @@ def train(
             model.eval()
 
             for img, depth, track in val_data:
-                img, depth, track = img.to(device), depth.to(device), track.to(device)
+                #img, depth, track = img.to(device), depth.to(device), track.to(device)
 
                 # TODO: compute validation accuracy
                 #raise NotImplementedError("Validation accuracy not implemented")
