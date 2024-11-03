@@ -19,7 +19,7 @@ def train(
     batch_size: int = 128,
     seed: int = 2024,
     loss_wgt: float = 0.5,
-    class_wgt: list = [0.1,0.45,0.45]
+    class_wgt: list = [0.1,0.45,0.45],
     **kwargs,
 ):
     if torch.cuda.is_available():
