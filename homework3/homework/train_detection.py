@@ -60,9 +60,10 @@ def train(
 
         model.train()
 
-
-        for img, depth, track in train_data:
-            #img, depth, track = img.to(device), depth.to(device), track.to(device)
+        for batch in train_data:
+            img = batch["image"].to(device)
+            depth = batch["depth"].to(device)
+            track = batch["track"].to(device)
 
             # TODO: implement training step
             # raise NotImplementedError("Training step not implemented")
@@ -92,8 +93,10 @@ def train(
         with torch.inference_mode():
             model.eval()
 
-            for img, depth, track in val_data:
-                #img, depth, track = img.to(device), depth.to(device), track.to(device)
+            for batch in train_data:
+                img = batch["image"].to(device)
+                depth = batch["depth"].to(device)
+                track = batch["track"].to(device)
 
                 # TODO: compute validation accuracy
                 #raise NotImplementedError("Validation accuracy not implemented")
