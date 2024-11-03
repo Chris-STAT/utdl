@@ -184,6 +184,8 @@ class Detector(torch.nn.Module):
                 - depth (b, h, w)
         """
         # optional: normalizes the input
+        if isinstance(x, tuple):
+            x = x[0]
         z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
 
         # TODO: replace with actual forward pass
@@ -211,7 +213,7 @@ class Detector(torch.nn.Module):
         This is what the metrics use as input (this is what the grader will use!).
 
         Args:
-            x (torch.FloatTensor): image with shape (b, 3, h, w) and vals in [0, 1]
+           
 
         Returns:
             tuple of (torch.LongTensor, torch.FloatTensor):
