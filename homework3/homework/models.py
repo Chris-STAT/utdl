@@ -120,7 +120,7 @@ class Classifier(nn.Module):
         Returns:
             pred (torch.LongTensor): class labels {0, 1, ..., 5} with shape (b, h, w)
         """
-        return self(x).argmax(dim=1)
+        return self.forward(x).argmax(dim=1)
 
 
 class Detector(torch.nn.Module):
@@ -142,7 +142,14 @@ class Detector(torch.nn.Module):
         self.register_buffer("input_std", torch.as_tensor(INPUT_STD))
 
         # TODO: implement
-        pass
+        self.down1 = nn.Conv2d(in_channels, 16, kernal_size = 3, stride=2,  padding=1)
+        self.down2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.relu = nn.ReLU(inplace=True)
+        self.up1 = nn.ConvTranspose2d(32, 16, kernal_size=3, stride=2, padding=1, output_padding=1)
+        self.up2 = nn.ConvTranspose2d(16, 16, kernal_size=3, stride=2, padding=1, output_padding=1)
+
+        self.logits_layer = nn.Conv2d(16, num_classes, kernal_size=1)
+        self.depth_layer = nn.Conv2d(16, 1, kernal_size=1)
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
@@ -161,8 +168,21 @@ class Detector(torch.nn.Module):
         z = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
 
         # TODO: replace with actual forward pass
-        logits = torch.randn(x.size(0), 3, x.size(2), x.size(3))
-        raw_depth = torch.rand(x.size(0), x.size(2), x.size(3))
+        #logits = torch.randn(x.size(0), 3, x.size(2), x.size(3))
+        #raw_depth = torch.rand(x.size(0), x.size(2), x.size(3))
+
+        z = self.down1(z)
+        z = self.relu(z)
+        z = self.down2(z)
+        z = self.relu(z)
+
+        z = self.up1(z)
+        z = self.relu(z)
+        z = self.up2(z)
+        z = self.relu(z)
+
+        logits = self.logits_layer(z)
+        raw_depth = self.depth_layer(z)
 
         return logits, raw_depth
 
@@ -179,7 +199,7 @@ class Detector(torch.nn.Module):
                 - pred: class labels {0, 1, 2} with shape (b, h, w)
                 - depth: normalized depth [0, 1] with shape (b, h, w)
         """
-        logits, raw_depth = self(x)
+        logits, raw_depth = self.forward(x)
         pred = logits.argmax(dim=1)
 
         # Optional additional post-processing for depth only if needed
