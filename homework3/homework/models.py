@@ -423,7 +423,7 @@ class Detector(nn.Module):
         return pred, depth
 '''
 
-
+'''
 class Detector(nn.Module):
     def __init__(
         self,
@@ -522,6 +522,127 @@ class Detector(nn.Module):
         depth = raw_depth.clamp(0, 1)  # Optional normalization of depth
 
         return pred, depth
+'''
+
+
+class Detector(nn.Module):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        num_classes: int = 3,
+    ):
+        super(Detector, self).__init__()
+
+        # Registering mean and std as buffers for normalization
+        self.register_buffer("input_mean", torch.tensor([0.2788, 0.2657, 0.2629]))
+        self.register_buffer("input_std", torch.tensor([0.2064, 0.1944, 0.2252]))
+
+        # Encoder (Downsampling path)
+        self.enc1 = nn.Sequential(
+            nn.Conv2d(in_channels, 16, kernel_size=3, padding=1, stride=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            ResBlock(16, 16),
+        )
+        self.pool1 = nn.MaxPool2d(2, 2)
+
+        self.enc2 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=3, padding=1, stride=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            ResBlock(32, 32),
+        )
+        self.pool2 = nn.MaxPool2d(2, 2)
+
+        self.enc3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            ResBlock(64, 64),
+        )
+        self.pool3 = nn.MaxPool2d(2, 2)
+
+        # Bottleneck
+        self.bottleneck = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            ResBlock(128, 128),
+        )
+
+        # Decoder (Upsampling path)
+        self.up3 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.dec3 = nn.Sequential(
+            nn.Conv2d(128, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            ResBlock(64, 64),
+        )
+
+        self.up2 = nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2)
+        self.dec2 = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            ResBlock(32, 32),
+        )
+
+        self.up1 = nn.ConvTranspose2d(32, 16, kernel_size=2, stride=2)
+        self.dec1 = nn.Sequential(
+            nn.Conv2d(32, 16, kernel_size=3, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            ResBlock(16, 16),
+        )
+
+        # Output layers for segmentation and depth
+        self.logits_layer = nn.Conv2d(16, num_classes, kernel_size=1)
+        self.depth_layer = nn.Conv2d(16, 1, kernel_size=1)
+
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        # Normalize the input
+        x = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
+
+        # Encoder path with downsampling
+        enc1 = self.enc1(x)
+        enc2 = self.enc2(self.pool1(enc1))
+        enc3 = self.enc3(self.pool2(enc2))
+
+        # Bottleneck
+        bottleneck = self.bottleneck(self.pool3(enc3))
+
+        # Decoder path with upsampling and skip connections
+        dec3 = self.up3(bottleneck)
+        dec3 = torch.cat((dec3, enc3), dim=1)
+        dec3 = self.dec3(dec3)
+
+        dec2 = self.up2(dec3)
+        dec2 = torch.cat((dec2, enc2), dim=1)
+        dec2 = self.dec2(dec2)
+
+        dec1 = self.up1(dec2)
+        dec1 = torch.cat((dec1, enc1), dim=1)
+        dec1 = self.dec1(dec1)
+
+        # Output layers for segmentation and depth maps
+        logits = self.logits_layer(dec1)
+        raw_depth = self.depth_layer(dec1)
+
+        return logits, raw_depth.squeeze(1)
+
+    def predict(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        logits, raw_depth = self.forward(x)
+        pred = logits.argmax(dim=1)
+
+        # Optional normalization of depth
+        depth = raw_depth.clamp(0, 1)
+
+        return pred, depth
+
+
+
+
+
 
 
 
