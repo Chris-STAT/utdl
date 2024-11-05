@@ -191,8 +191,8 @@ class Classifier(nn.Module):
         self.layer_2 = ResBlock(in_c, out_c)
         self.layer_3 = ResBlock(in_c, out_c)
         self.layer_4 = ResBlock(in_c, out_c)
-        self.layer_5 = ResBlock(in_c, out_c)
-        self.layer_6 = ResBlock(in_c, out_c)
+        #self.layer_5 = ResBlock(in_c, out_c)
+        #self.layer_6 = ResBlock(in_c, out_c)
         self.dropout = nn.Dropout(0.15)
         self.output = nn.Linear(in_c, num_classes)
 
