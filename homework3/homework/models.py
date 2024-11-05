@@ -212,8 +212,8 @@ class Classifier(nn.Module):
         z = self.layer_2(z)
         z = self.layer_3(z)
         z = self.layer_4(z)
-        z = self.layer_5(z)
-        z = self.layer_6(z)
+        #z = self.layer_5(z)
+        #z = self.layer_6(z)
         z = self.dropout(z)
         
         # Global average pooling and final fully connected layer
