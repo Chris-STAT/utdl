@@ -161,8 +161,8 @@ def train_planner(
         if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 10 == 0:
             print(
                 f"Epoch {epoch + 1:2d} / {num_epoch:2d}: "
-                f"train_mse={epoch_train_l1_loss:.4f} "
-                f"val_mse={epoch_val_l1_loss:.4f}"
+                f"train_l1_loss={epoch_train_l1_loss:.4f} "
+                f"val_l1_loss={epoch_val_l1_loss:.4f}"
             )
 
 
