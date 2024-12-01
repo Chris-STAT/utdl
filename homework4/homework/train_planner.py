@@ -46,7 +46,7 @@ def custom_l1_loss(predicted_waypoints, target_waypoints, mask=None):
 
 def train_planner(
     exp_dir: str = "logs",
-    model_name: str = 'MLPPlanner',
+    model_name: str = "cnn_planner",
     num_epoch: int = 50,
     lr: float = 1e-4,
     batch_size: int = 128,
@@ -109,7 +109,7 @@ def train_planner(
             waypoints = batch["waypoints"].to(device)     # shape(B, n_waypoints, 2)
             mask = batch["waypoints_mask"].to(device)     # shape(B, n_waypoints)
             
-            if model_name == "CNNPlanner":
+            if model_name == "cnn_planner":
                predicted_waypoints = model(image)
             else:
                predicted_waypoints = model(track_left, track_right)
@@ -140,7 +140,7 @@ def train_planner(
                 waypoints = batch["waypoints"].to(device)     # shape(B, n_waypoints, 2)
                 mask = batch["waypoints_mask"].to(device)     # shape(B, n_waypoints)
                 
-                if model_name == "CNNPlanner":
+                if model_name == "cnn_planner":
                    predicted_waypoints = model(image)
                 else:
                    predicted_waypoints = model(track_left, track_right)
