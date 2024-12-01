@@ -196,7 +196,7 @@ class CNNPlanner(torch.nn.Module):
         )
 
         self.output = nn.Sequential(
-            nn.Faltten(),
+            nn.Flatten(),
             nn.Linear(128*6*8, 512), # Assuming input size (3, 96, 128)
             nn.ReLU(),
             nn.Linear(512, self.n_waypoints*2), # Predict (x,y) for each waypoint
