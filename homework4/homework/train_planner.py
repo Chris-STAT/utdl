@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.utils.tensorboard as tb
 import torch.optim as optim
+import torch.nn.functional as F
 
 from .models import MLPPlanner, load_model, save_model
 from .datasets.road_dataset import load_data
@@ -83,7 +84,7 @@ def train_planner(
                          return_dataloader=True,
                          batch_size=batch_size,
                          shuffle=False,
-                        num_workers=2)
+                         num_workers=2)
     
 
 
