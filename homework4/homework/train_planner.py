@@ -16,6 +16,33 @@ import torch.optim as optim
 from .models import MLPPlanner, load_model, save_model
 from .datasets.road_dataset import load_data
 
+
+
+def custom_l1_loss(predicted_waypoints, target_waypoints, mask=None):
+    """
+    Computes the mean absolute loss for the last two elements of the last dimension
+    of the waypoints tensor.
+
+    Args:
+        predicted_waypoints (torch.Tensor): Predicted waypoints with shape (B, n_waypoints, 2).
+        target_waypoints (torch.Tensor): Target waypoints with shape (B, n_waypoints, 2).
+        mask (torch.Tensor, optional): Boolean mask with shape (B, n_waypoints).
+
+    Returns:
+        torch.Tensor: Mean absolute loss.
+    """
+    # Slice the last dimension (to get the last two elements: the entire [x, y] here)
+    predicted = predicted_waypoints[..., -2:]
+    target = target_waypoints[..., -2:]
+
+    if mask is not None:
+        # Apply the mask
+        predicted = predicted[mask]
+        target = target[mask]
+
+    # Compute the mean absolute loss
+    return F.l1_loss(predicted, target)
+
 def train_planner(
     exp_dir: str = "logs",
     model_name: str = 'MLPPlanner',
@@ -63,7 +90,7 @@ def train_planner(
 
     # Define optimizer and loss function
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    loss_func = nn.MSELoss()
+    #loss_func = nn.MSELoss()
 
     global_step = 0
     metrics = {"train_mse": [], "val_mse": []}
@@ -85,7 +112,8 @@ def train_planner(
             optimizer.zero_grad()
             predicted_waypoints = model(track_left, track_right)
 
-            loss = loss_func(predicted_waypoints[mask], waypoints[mask])
+            #loss = loss_func(predicted_waypoints[mask], waypoints[mask])
+            loss = custom_l1_loss(predicted_waypoints, waypoints, mask)
 
             loss.backward()
             optimizer.step()
