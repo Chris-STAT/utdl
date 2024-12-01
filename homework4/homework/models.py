@@ -101,27 +101,32 @@ class TransformerPlanner(nn.Module):
 
         self.n_track = n_track
         self.n_waypoints = n_waypoints
+        self.d_model = d_model
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.dim_feedforward = dim_feedforward
+        self.dropout = dropout
 
         # Embeddings for queries (waypoints)
-        self.query_embed = nn.Embedding(n_waypoints, d_model)
+        self.query_embed = nn.Embedding(self.n_waypoints, self.d_model)
 
         # Linear projection for track input
-        self.input_proj = nn.Linear(2, d_model)
+        self.input_proj = nn.Linear(2, self.d_model)
 
         # Transformer decoder
         decoder_layer = nn.TransformerDecoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
+            d_model=self.d_model,
+            nhead=self.nhead,
+            dim_feedforward=self.dim_feedforward,
+            dropout=self.dropout,
         )
         self.transformer_decoder = nn.TransformerDecoder(
             decoder_layer,
-            num_layers=num_layers,
+            num_layers=self.num_layers,
         )
 
         # Output projection to (x, y) coordinates
-        self.output_proj = nn.Linear(d_model, 2)
+        self.output_proj = nn.Linear(self.d_model, 2)
 
     def forward(
         self,
@@ -149,7 +154,7 @@ class TransformerPlanner(nn.Module):
 
         # Positional encoding (optional, you can implement it for better results)
         position_ids = torch.arange(track_embed.shape[1], device=track.device).unsqueeze(0)
-        position_embed = F.one_hot(position_ids, num_classes=d_model).float()
+        position_embed = F.one_hot(position_ids, num_classes=self.d_model).float()
         track_embed += position_embed
 
         # Query embeddings (n_waypoints, d_model)
