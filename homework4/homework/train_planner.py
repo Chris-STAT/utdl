@@ -44,14 +44,14 @@ def train_planner(
     model = model.to(device)
 
 
-    train_data = load_data(dataset_path="drive_data/drive_data/train", 
+    train_data = load_data(dataset_path="drive_data/train", 
                            transform_pipeline="default", 
                            return_dataloader=True,
                            batch_size=batch_size,
                            shuffle=True,
                            num_workers=2)
     
-    val_data = load_data(dataset_path="drive_data/drive_data/val", 
+    val_data = load_data(dataset_path="drive_data/val", 
                          transform_pipeline="default", 
                          return_dataloader=True,
                          batch_size=batch_size,
