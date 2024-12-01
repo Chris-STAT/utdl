@@ -93,7 +93,8 @@ def train_planner(
     #loss_func = nn.MSELoss()
 
     global_step = 0
-    metrics = {"train_mse": [], "val_mse": []}
+    #metrics = {"train_mse": [], "val_mse": []}
+    metrics = {"train_l1_loss": [], "val_l1_loss": []}
 
     # training loop
     for epoch in range(num_epoch):
@@ -118,7 +119,8 @@ def train_planner(
             loss.backward()
             optimizer.step()
 
-            metrics["train_mse"].append(loss.item())
+            #metrics["train_mse"].append(loss.item())
+            metrics["train_l1_loss"].append(loss.item())
 
             global_step += 1
 
@@ -132,23 +134,36 @@ def train_planner(
                 waypoints = batch["waypoints"].to(device)     # shape(B, n_waypoints, 2)
                 mask = batch["waypoints_mask"].to(device)     # shape(B, n_waypoints)
                 predicted_waypoints = model(track_left, track_right)
-                loss = loss_func(predicted_waypoints[mask], waypoints[mask])
-                metrics["val_mse"].append(loss.item())
+                #loss = loss_func(predicted_waypoints[mask], waypoints[mask])
+                loss = custom_l1_loss(predicted_waypoints, waypoints, mask)
+                #metrics["val_mse"].append(loss.item())
+                metrics["val_l1_loss"].append(loss.item())
 
         # log average train and val mse to tensorboard
-        epoch_train_mse = torch.as_tensor(metrics["train_mse"]).mean().item()
-        epoch_val_mse = torch.as_tensor(metrics["val_mse"]).mean().item()
+        #epoch_train_mse = torch.as_tensor(metrics["train_mse"]).mean().item()
+        #epoch_val_mse = torch.as_tensor(metrics["val_mse"]).mean().item()
+        epoch_train_l1_loss = torch.as_tensor(metrics["train_l1_loss"]).mean().item()
+        epoch_val_l1_loss = torch.as_tensor(metrics["val_l1_loss"]).mean().item()
 
-        logger.add_scalar("MSE/Train", epoch_train_mse, epoch)
-        logger.add_scalar("MSE/Validation", epoch_val_mse , epoch)
+        #logger.add_scalar("MSE/Train", epoch_train_mse, epoch)
+        #logger.add_scalar("MSE/Validation", epoch_val_mse , epoch)
+        logger.add_scalar("l1_loss/Train", epoch_train_l1_loss, epoch)
+        logger.add_scalar("l1_loss/Validation", epoch_val_l1_loss , epoch)
 
         # print on first, last, every 10th epoch
+        #if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 10 == 0:
+        #    print(
+        #        f"Epoch {epoch + 1:2d} / {num_epoch:2d}: "
+        #        f"train_mse={epoch_train_mse:.4f} "
+        #        f"val_mse={epoch_val_mse:.4f}"
+        #    )
         if epoch == 0 or epoch == num_epoch - 1 or (epoch + 1) % 10 == 0:
             print(
                 f"Epoch {epoch + 1:2d} / {num_epoch:2d}: "
-                f"train_mse={epoch_train_mse:.4f} "
-                f"val_mse={epoch_val_mse:.4f}"
+                f"train_mse={epoch_train_l1_loss:.4f} "
+                f"val_mse={epoch_val_l1_loss:.4f}"
             )
+
 
     # save and overwrite the model in the root directory for grading
     save_model(model)
