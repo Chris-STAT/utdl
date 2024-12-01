@@ -183,6 +183,25 @@ class CNNPlanner(torch.nn.Module):
         self.register_buffer("input_mean", torch.as_tensor(INPUT_MEAN), persistent=False)
         self.register_buffer("input_std", torch.as_tensor(INPUT_STD), persistent=False)
 
+
+        self.conv_block = nn.Sequential(
+            nn.Conv2d(3, 16, kernel_size=3, stride=2, padding=1),  # (B, 16, H/2, W/2)
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1), # (B, 32, H/4, W/4)
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernal_size=3, stride=2, padding=1), # (B, 64, H/8, W/8)
+            nn.ReLU(),
+            nn.Con2d(64, 128, kernel_size=3, stride=2, padding=1), # (B, 128, H/16, W/16)
+            nn.ReLU(),
+        )
+
+        self.output = nn.Sequential(
+            nn.Faltten(),
+            nn.Linear(128*6*8, 512), # Assuming input size (3, 96, 128)
+            nn.ReLU(),
+            nn.Linear(512, self.n_waypoints*2), # Predict (x,y) for each waypoint
+        )
+
     def forward(self, image: torch.Tensor, **kwargs) -> torch.Tensor:
         """
         Args:
@@ -194,7 +213,15 @@ class CNNPlanner(torch.nn.Module):
         x = image
         x = (x - self.input_mean[None, :, None, None]) / self.input_std[None, :, None, None]
 
-        raise NotImplementedError
+        x = self.conv_block(x)
+        x = self.output(x)
+
+        # Reshape output to (B, n_waypoints, 2)
+        waypoints = x.view(-1, self.n_waypoints, 2)
+
+        return waypoints
+
+        #raise NotImplementedError
 
 
 MODEL_FACTORY = {

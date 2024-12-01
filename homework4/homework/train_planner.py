@@ -84,10 +84,7 @@ def train_planner(
                          return_dataloader=True,
                          batch_size=batch_size,
                          shuffle=False,
-                         num_workers=2)
-    
-
-
+                         num_workers=2) 
 
     # Define optimizer and loss function
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -106,13 +103,20 @@ def train_planner(
         model.train()
 
         for batch in train_data:
+            image = batch["image"].to(device)             # shape(B, 3, 96, 128)
             track_left = batch["track_left"].to(device)   # shape(B, n_track, 2)
             track_right = batch["track_right"].to(device) # shape(B, n_track, 2)
             waypoints = batch["waypoints"].to(device)     # shape(B, n_waypoints, 2)
             mask = batch["waypoints_mask"].to(device)     # shape(B, n_waypoints)
-
+            
+            if model_name == "CNNPlanner":
+               predicted_waypoints = model(image)
+            else:
+               predicted_waypoints = model(track_left, track_right)
+            
+            
             optimizer.zero_grad()
-            predicted_waypoints = model(track_left, track_right)
+           
 
             #loss = loss_func(predicted_waypoints[mask], waypoints[mask])
             loss = custom_l1_loss(predicted_waypoints, waypoints, mask)
@@ -130,11 +134,17 @@ def train_planner(
             model.eval()
 
             for batch in val_data:
+                image = batch["image"].to(device)             # shape(B, 3, 96, 128)
                 track_left = batch["track_left"].to(device)   # shape(B, n_track, 2)
                 track_right = batch["track_right"].to(device) # shape(B, n_track, 2)
                 waypoints = batch["waypoints"].to(device)     # shape(B, n_waypoints, 2)
                 mask = batch["waypoints_mask"].to(device)     # shape(B, n_waypoints)
-                predicted_waypoints = model(track_left, track_right)
+                
+                if model_name == "CNNPlanner":
+                   predicted_waypoints = model(image)
+                else:
+                   predicted_waypoints = model(track_left, track_right)
+
                 #loss = loss_func(predicted_waypoints[mask], waypoints[mask])
                 loss = custom_l1_loss(predicted_waypoints, waypoints, mask)
                 #metrics["val_mse"].append(loss.item())
