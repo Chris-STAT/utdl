@@ -191,7 +191,7 @@ class CNNPlanner(torch.nn.Module):
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1), # (B, 64, H/8, W/8)
             nn.ReLU(),
-            nn.Con2d(64, 128, kernel_size=3, stride=2, padding=1), # (B, 128, H/16, W/16)
+            nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1), # (B, 128, H/16, W/16)
             nn.ReLU(),
         )
 
